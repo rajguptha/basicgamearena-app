@@ -79,20 +79,28 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: build_push
     runs-on: self-hosted
-    defaults: { run: { shell: powershell } }
+
+    defaults:
+      run:
+        shell: powershell
+
     steps:
     - uses: actions/checkout@v4
+
     - name: Setup kubectl
       uses: azure/setup-kubectl@v4
-    - name: Use local kubeconfig
+
+    - name: Use local kubeconfig (always current)
       run: |
         "KUBECONFIG=$env:USERPROFILE\.kube\config" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        kubectl config use-context minikube
 
     - name: Install Helm
       uses: azure/setup-helm@v4
       with:
         version: v3.13.0
-        shell: pwsh                 # uses PowerShell 7 for this step
+        shell: pwsh
+
     - name: Helm upgrade (dev)
       run: |
         helm upgrade --install basic-game-arena .\helm\basic-game-arena `
