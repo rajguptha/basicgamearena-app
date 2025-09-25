@@ -32,3 +32,5 @@ Workflows: **test → build+push (GHCR) → scan → deploy (dev on main)**
 ## Notes
 - Chart includes a `ServiceMonitor` (works if kube-prometheus-stack is installed).
 - App exposes `/actuator/prometheus`.
+
+Update: 09/25/2025 14:45:29
