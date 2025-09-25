@@ -76,17 +76,26 @@ jobs:
           format: 'table'
 
   deploy_dev:
-    if: github.ref == 'refs/heads/main'
-    needs: build_push
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v4
-      - name: Write kubeconfig
-        run: echo "${{ secrets.KUBECONFIG_FILE }}" | base64 -d > kubeconfig && echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig" >> $GITHUB_ENV
-      - name: Install Helm
-        uses: azure/setup-helm@v4
-      - name: Helm upgrade (dev)
-        run: |
-          helm upgrade --install basic-game-arena ./helm/basic-game-arena             --namespace dev --create-namespace             --set image.repository=ghcr.io/${{ env.IMAGE_NAME }}             --set image.tag=${{ env.IMAGE_TAG }}             --set-string podAnnotations.app\.git\.commit=${{ env.IMAGE_TAG }}             --wait --timeout 5m
+  if: github.ref == 'refs/heads/main'
+  needs: build_push
+  runs-on: self-hosted      # <— important: run on your PC
+  steps:
+    - uses: actions/checkout@v4
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v4
+    - name: Write kubeconfig
+      shell: pwsh
+      run: |
+        echo "${{ secrets.KUBECONFIG_FILE }}" | base64 -d > kubeconfig
+        echo "KUBECONFIG=$PWD/kubeconfig" >> $env:GITHUB_ENV
+    - name: Install Helm
+      uses: azure/setup-helm@v4
+    - name: Helm upgrade (dev)
+      shell: pwsh
+      run: |
+        helm upgrade --install basic-game-arena ./helm/basic-game-arena `
+          --namespace dev --create-namespace `
+          --set image.repository=ghcr.io/${{ github.repository_owner }}/basicgamearena-app `
+          --set image.tag=${{ github.sha }}-${{ github.run_number }} `
+          --set-string podAnnotations.app\.git\.commit=${{ github.sha }}-${{ github.run_number }} `
+          --wait --timeout 5m
