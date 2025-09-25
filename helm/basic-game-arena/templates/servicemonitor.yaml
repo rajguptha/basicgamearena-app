@@ -1,0 +1,16 @@
+{{- if .Values.metrics.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "basic-game-arena.fullname" . }}
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "basic-game-arena.name" . }}
+  endpoints:
+    - port: {{ .Values.service.name }}
+      path: {{ .Values.metrics.path }}
+      interval: 15s
+{{- end }}

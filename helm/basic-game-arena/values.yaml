@@ -1,0 +1,21 @@
+image:
+  repository: ghcr.io/YOUR_GITHUB_USERNAME/basicgamearena-app
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  name: http
+
+resources: {}
+
+metrics:
+  enabled: true
+  path: /actuator/prometheus
+  port: 8080
+
+env: []
