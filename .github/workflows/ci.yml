@@ -79,28 +79,21 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: build_push
     runs-on: self-hosted
-
-    defaults:
-      run:
-        shell: powershell
-
+    defaults: { run: { shell: powershell } }
     steps:
     - uses: actions/checkout@v4
     - name: Setup kubectl
       uses: azure/setup-kubectl@v4
-
     - name: Write kubeconfig
       run: |
         [IO.File]::WriteAllBytes("$pwd\kubeconfig",
           [Convert]::FromBase64String("${{ secrets.KUBECONFIG_FILE }}"))
         "KUBECONFIG=$pwd\kubeconfig" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-    - name: Install Helm (manual)
-      run: |
-        Invoke-WebRequest -Uri https://get.helm.sh/helm-v3.13.0-windows-amd64.zip -OutFile helm.zip
-        Expand-Archive helm.zip -DestinationPath .
-        Move-Item .\windows-amd64\helm.exe C:\Windows\System32\helm.exe
-
+    - name: Install Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: v3.13.0
+        shell: pwsh                 # uses PowerShell 7 for this step
     - name: Helm upgrade (dev)
       run: |
         helm upgrade --install basic-game-arena .\helm\basic-game-arena `
@@ -109,3 +102,4 @@ jobs:
           --set image.tag=${{ github.sha }}-${{ github.run_number }} `
           --set-string podAnnotations.app\.git\.commit=${{ github.sha }}-${{ github.run_number }} `
           --wait --timeout 5m
+
