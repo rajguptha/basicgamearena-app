@@ -84,11 +84,10 @@ jobs:
     - uses: actions/checkout@v4
     - name: Setup kubectl
       uses: azure/setup-kubectl@v4
-    - name: Write kubeconfig
+    - name: Use local kubeconfig
       run: |
-        [IO.File]::WriteAllBytes("$pwd\kubeconfig",
-          [Convert]::FromBase64String("${{ secrets.KUBECONFIG_FILE }}"))
-        "KUBECONFIG=$pwd\kubeconfig" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        "KUBECONFIG=$env:USERPROFILE\.kube\config" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
     - name: Install Helm
       uses: azure/setup-helm@v4
       with:
