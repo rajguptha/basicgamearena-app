@@ -80,27 +80,26 @@ jobs:
     needs: build_push
     runs-on: self-hosted
 
-    # use Windows PowerShell for every run: step
     defaults:
       run:
         shell: powershell
 
     steps:
     - uses: actions/checkout@v4
-
     - name: Setup kubectl
       uses: azure/setup-kubectl@v4
 
     - name: Write kubeconfig
       run: |
-        # decode base64 secret to kubeconfig file
         [IO.File]::WriteAllBytes("$pwd\kubeconfig",
           [Convert]::FromBase64String("${{ secrets.KUBECONFIG_FILE }}"))
-        # export for later steps
         "KUBECONFIG=$pwd\kubeconfig" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-    - name: Install Helm
-      uses: azure/setup-helm@v4
+    - name: Install Helm (manual)
+      run: |
+        Invoke-WebRequest -Uri https://get.helm.sh/helm-v3.13.0-windows-amd64.zip -OutFile helm.zip
+        Expand-Archive helm.zip -DestinationPath .
+        Move-Item .\windows-amd64\helm.exe C:\Windows\System32\helm.exe
 
     - name: Helm upgrade (dev)
       run: |
